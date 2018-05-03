@@ -7,144 +7,9 @@ from matplotlib.patches import Ellipse
 from astropy.cosmology.funcs1 import distmod
 #I'll need to put in cosmology because I took it all out of the source code
 
-'''
-#numerical derivatives baby
-u1 = 1.
-sig1 = 1.0
-p1 = 0.5
-u2 = u1
-sig2 = 1 - 0.5*sig1
-p2 = 1. - p1
+import os
 
 
-def f(x,u1,u2,p1,sig1,sig2):
-    f1 = (1./(np.sqrt(2.*np.pi*sig1)))*np.exp(-(x-u1)**2/(2.*sig1))
-    f2 = (1./(np.sqrt(2.*np.pi*sig2)))*np.exp(-(x-u2)**2/(2.*sig2))
-    return p1*f1 + p2*f2
-
-def log_f(x,u1,u2,p1,sig1,sig2):
-    f1 = (1./(np.sqrt(2.*np.pi*sig1)))*np.exp(-(x-u1)**2/(2.*sig1))
-    f2 = (1./(np.sqrt(2.*np.pi*sig2)))*np.exp(-(x-u2)**2/(2.*sig2))
-    return np.log(p1) + np.log(f1) + np.log(1. + p2*f2/(p1*f1))
-
-
-def f(xs,u1s,u2s,p1s,sig1s,sig2s):
-    ps = Decimal(p1)
-    f1 = Decimal(1./(np.sqrt(2*np.pi)*(sig1s)))*Decimal(-(xs-u1s)**2/(2*sig1s)).exp()
-    f2 = Decimal(1./(np.sqrt(2*np.pi)*(sig2s)))*Decimal(-(xs-u2s)**2/(2*sig2s)).exp()
-    return float(ps*f1 + (Decimal(1.)-ps)*f2)
-
-def log_f(xs,u1s,u2s,p1s,sig1s,sig2s):
-    ps = Decimal(p1)
-    f1 = Decimal(1./(np.sqrt(2*np.pi)*(sig1s)))*Decimal(-(xs-u1s)**2/(2*sig1s)).exp()
-    f2 = Decimal(1./(np.sqrt(2*np.pi)*(sig2s)))*Decimal(-(xs-u2s)**2/(2*sig2s)).exp()
-    return float(Decimal.ln(ps) + Decimal.ln(f1) + Decimal.ln(Decimal(1.) + (Decimal(1.)-ps)*f2/(ps*f1)))
-
-x = np.arange(-20, 20, 4)
-def f(xs,u1s,u2s,p1s,sig1s,sig2s):
-
-    rt = []
-    for i in range(len(xs)):
-        ps = Decimal(p1)
-        f1 = Decimal(1./(np.sqrt(2*np.pi)*(sig1s)))*Decimal(-(xs[i]-u1s)**2/(2*sig1s)).exp()
-        f2 = Decimal(1./(np.sqrt(2*np.pi)*(sig2s)))*Decimal(-(xs[i]-u2s)**2/(2*sig2s)).exp()
-        rt.append(float(ps*f1 + (Decimal(1.)-ps)*f2))
-    
-    return np.array(rt)
-
-def log_f(xs,u1s,u2s,p1s,sig1s,sig2s):
-    rt = []
-    for i in range(len(xs)):
-        ps = Decimal(p1)
-        f1 = Decimal(1./(np.sqrt(2*np.pi)*(sig1s)))*Decimal(-(xs[i]-u1s)**2/(2*sig1s)).exp()
-        f2 = Decimal(1./(np.sqrt(2*np.pi)*(sig2s)))*Decimal(-(xs[i]-u2s)**2/(2*sig2s)).exp()
-        rt.append(float(Decimal.ln(ps) + Decimal.ln(f1) + Decimal.ln(Decimal(1.) + (Decimal(1.)-ps)*f2/(ps*f1))))
-    
-    return np.array(rt)
-
-def I_00(x): #this is the function that gives f*(dlogf/du1)^2 (1st matrix element) so Quad can integrate
-    h = 1e-5 #just add and subtract h from whatever parameter you want
-    return f(x,u1,u2,p1,sig1,sig2)*((log_f(x,u1,u2,p1,sig1 + h,sig2) - log_f(x,u1,u2,p1,sig1 - h,sig2))/(2.*h))**2
-
-
-def I_01(x): #this is the function that gives f*(dlogf/du1)^2 (1st matrix element) so Quad can integrate
-    h = 1e-5 #just add and subtract h from whatever parameter you want
-    return f(x,u1,u2,p1,sig1,sig2)*((log_f(x,u1,u2,p1,sig1 + h,sig2) - log_f(x,u1,u2,p1,sig1 - h,sig2))/(2.*h))*((log_f(x,u1,u2,p1,sig1,sig2 + h) - log_f(x,u1,u2,p1,sig1,sig2 - h))/(2.*h))
-
-
-def I_10(x): #this is the function that gives f*(dlogf/du1)^2 (1st matrix element) so Quad can integrate #just add and subtract h from whatever parameter you want
-    return I_01(x)
-
-
-def I_11(x): #this is the function that gives f*(dlogf/du1)^2 (1st matrix element) so Quad can integrate
-    h = 1e-5 #just add and subtract h from whatever parameter you want
-    return f(x,u1,u2,p1,sig1,sig2)*((log_f(x,u1,u2,p1,sig1,sig2 + h) - log_f(x,u1,u2,p1,sig1,sig2 - h))/(2.*h))**2
-
-
-
-#y1 = quad(I_00, -np.inf, np.inf, args = (), epsabs = 3000) # this is the nice infinte one, but we aren't doing that
-
-
-
-
-y2 = np.trapz(I_00(x), x)
-
-
-
-
-
-F = np.zeros((2,2))
-
-x = np.arange(-20, 20, 0.01)
-
-for i in range(2):
-    for j in range(2):
-        F[i,j] = np.trapz(eval('I_'+'{:1.0f}'.format(i) + '{:1.0f}'.format(j))(x), x) #uses trapz to integrate over data vector mb
-
-
-i = np.linalg.inv(F)
-
-w,v=np.linalg.eigh(i)
-
-angle=180*np.arctan2(v[1,0],v[0,0])/np.pi
-
-#
-
-a_1s=np.sqrt(2.3*(w[0])) #68% #it seems like a is whatever the 2nd element of the array is, so sigy**2
-b_1s=np.sqrt(2.3*w[1])
-a_2s=np.sqrt(6.17*(w[0])) #95%
-b_2s=np.sqrt(6.17*w[1])
-
-
-centre = np.array([sig1,sig2])
-
-e_1s=Ellipse(xy=centre,width=2*a_1s,height=2*b_1s,angle=angle,
-                    facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='aqua', label = '$68$% $confidence$')
-#                     
-
-e_2s=Ellipse(xy=centre,width=2*a_2s,height=2*b_2s,angle=angle,
-                    facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='blue',  label = '$95$% $confidence$')
-#                     facecolor=fc[i],linewidth=lw[i],linestyle=ls[i],edgecolor=lc[i])
-
-
-ax = plt.gca()
-
-
-plt.axis([-10,10,-10,10])
-plt.plot()
-
-plt.xlabel('$\sigma_{1}^{2}$')
-plt.ylabel("$\sigma_{2}^{2}$")
-
-ax.add_patch(e_1s)
-ax.add_patch(e_2s)
-#ax.add_patch(e_3s)
-
-ax.legend()
-
-plt.show()
-
-'''
 #cosmological parameters - means
 M = -1.934060e+01
 
@@ -183,7 +48,10 @@ from astropy.cosmology import Flatw0waCDM
 
 cos = Flatw0waCDM(h0, omega_m, w0= w, Ob0 = omega_b)
 
-datamat = np.loadtxt('test_out.txt', unpack=True)    
+data_file = os.path.join(os.path.expanduser('~/cosmosis/cosmosis-standard-library/supernovae/simplechi2/data/Shafer2'), 'test_out.txt')
+
+datamat = np.loadtxt(data_file, unpack = True)
+
 zhel = datamat[2] # redshift 
 zcmb = datamat[1] # redshift
 mb = datamat[4] 
@@ -311,6 +179,89 @@ def log_f(mb, dmb, zcmb, p1a, M, h0, omega_m, w, b, sign1a):
 #this outputs forty points, which is why the trapezoidal rule will work but the others won't
    
 #just comment out what I don't need
+
+
+#this naming convention is important, do dlogfd + whatever the name of the parameter is 
+
+def dlogfdu1(x): #u2
+    h = 1e-8 #arbitrarily small step for analytical derivative
+    return (log_f(x,u1 +h,u2,p1,sig1,sig2) - log_f(x,u1,u2,p1,sig1,sig2))/h
+
+def dlogfdu2(x): #u2
+    h = 1e-8 #arbitrarily small step for analytical derivative
+    return (log_f(x,u1 ,u2 + h,p1,sig1,sig2) - log_f(x,u1,u2,p1,sig1,sig2))/h
+
+def dlogfdp1(x): #u2
+    h = 1e-8 #arbitrarily small step for analytical derivative
+    return (log_f(x,u1 ,u2 ,p1 +h,sig1,sig2) - log_f(x,u1,u2,p1,sig1,sig2))/h
+
+def dlogfdsig1(x): #u2
+    h = 1e-8 #arbitrarily small step for analytical derivative
+    return (log_f(x,u1 ,u2 ,p1,sig1 + h,sig2) - log_f(x,u1,u2,p1,sig1,sig2))/h
+
+def dlogfdsig2(x): #u2
+    h = 1e-8 #arbitrarily small step for analytical derivative
+    return (log_f(x,u1 ,u2,p1,sig1,sig2 +h) - log_f(x,u1,u2,p1,sig1,sig2))/h    
+
+funcs = ['dlogfdu1','dlogfdu2', 'dlogfdsig1', 'dlogfdsig2']
+
+I = np.zeros((len(funcs),len(funcs)))
+
+
+for i in range(len(funcs)):
+    for j in range(len(funcs)):
+        I[i,j] = np.trapz(eval(funcs[i])(x)*eval(funcs[j])(x)*f(x,u1,u2,p1,sig1,sig2), x)
+
+F = np.linalg.inv(I)
+
+ 
+def plotting(a,b): #where a and b correspond to the order of parameters you want in funcs
+    C = np.zeros((2,2))
+    C[0,0] = F[a,a]
+    C[1,0] = F[a,b]
+    C[0,1] = F[b,a]
+    C[1,1] = F[b,b]
+    
+    w,v=np.linalg.eigh(C)
+    angle=180*np.arctan2(v[1,0],v[0,0])/np.pi
+    
+    a_1s=np.sqrt(2.3*w[0]) #68% confidence
+    b_1s=np.sqrt(2.3*w[1])
+    a_2s=np.sqrt(6.17*w[0]) #95% confidence 
+    b_2s=np.sqrt(6.17*w[1])
+      
+    centre = np.array([eval(funcs[a].split('dlogfd')[1]),eval(funcs[b].split('dlogfd')[1])])
+    
+    e_1s=Ellipse(xy=centre,width=2*a_1s,height=2*b_1s,angle=angle,
+                        facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='aqua', label = '$68$% $confidence$')
+    #                     
+    
+    e_2s=Ellipse(xy=centre,width=2*a_2s,height=2*b_2s,angle=angle,
+                        facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='blue',  label = '$95$% $confidence$')
+    #                     facecolor=fc[i],linewidth=lw[i],linestyle=ls[i],edgecolor=lc[i])
+    
+    print a_1s
+    print b_1s
+    
+    ax = plt.gca()
+    
+    
+    plt.axis([centre[0]-2*a_2s,centre[0] + 2*a_2s,centre[1] - 2*b_2s ,centre[1]+2*b_2s]) 
+    plt.plot()
+    
+    plt.xlabel(funcs[a].split('dlogfd')[1])
+    plt.ylabel(funcs[b].split('dlogfd')[1])
+    #ax.scatter(gauss[1][8000:-1], gauss[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
+    ax.add_patch(e_1s)
+    ax.add_patch(e_2s)
+    
+    
+    ax.legend()
+    
+    plt.show()
+        
+    
+
 
 
 #this is for M(x axis) and omega_m (y axis)
