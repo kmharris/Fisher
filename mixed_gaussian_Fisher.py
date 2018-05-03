@@ -84,8 +84,8 @@ F = np.linalg.inv(I)
 
 
 def plotting(a,b): #where a and b correspond to the parameter you want in quotes ie. "u2"
-    a = [i for i,s in enumerate(funcs) if a in s]
-    b = [i for i,s in enumerate(funcs) if b in s]
+    a = [i for i,s in enumerate(funcs) if a in s][0]
+    b = [i for i,s in enumerate(funcs) if b in s][0]
     
     B = np.zeros((2,2))
     B[0,0] = F[a,a]
@@ -101,7 +101,7 @@ def plotting(a,b): #where a and b correspond to the parameter you want in quotes
     a_2s=np.sqrt(6.17*w[0]) #95% confidence 
     b_2s=np.sqrt(6.17*w[1])
       
-    centre = np.array([eval(funcs[int(a[0])].split('dlogfd')[1]),eval(funcs[int(b[0])].split('dlogfd')[1])])
+    centre = np.array([eval(funcs[int(a)].split('dlogfd')[1]),eval(funcs[int(b)].split('dlogfd')[1])])
     
     print a_1s
     print b_1s
@@ -149,14 +149,14 @@ def plotting(a,b): #where a and b correspond to the parameter you want in quotes
     #emcee order is b, sign1a -> this part will be uncommented as you need it
     #you can use it to compare sign1a and b
    
-    #emcee_file = os.path.join(os.path.expanduser('~/cosmosis/'), 'gaussian.txt')
+    emcee_file = os.path.join(os.path.expanduser('~/cosmosis/'), 'gaussian.txt')
     
-    #emcee = np.loadtxt(emcee_file, unpack = True)
+    emcee = np.loadtxt(emcee_file, unpack = True)
     
    
-    plt.xlabel(funcs[int(a[0])].split('dlogfd')[1])
-    plt.ylabel(funcs[int(b[0])].split('dlogfd')[1])
-    #ax.scatter(emcee[1][8000:-1], emcee[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
+    plt.xlabel(funcs[int(a)].split('dlogfd')[1])
+    plt.ylabel(funcs[int(b)].split('dlogfd')[1])
+    ax.scatter(emcee[1][8000:-1], emcee[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
     ax.add_patch(e_1s)
     ax.add_patch(e_2s)
     
