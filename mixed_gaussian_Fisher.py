@@ -86,13 +86,14 @@ F = np.linalg.inv(I)
 def plotting(a,b): #where a and b correspond to the parameter you want in quotes ie. "u2"
     a = [i for i,s in enumerate(funcs) if a in s]
     b = [i for i,s in enumerate(funcs) if b in s]
-    C = np.zeros((2,2))
-    C[0,0] = F[a,a]
-    C[1,0] = F[a,b]
-    C[0,1] = F[b,a]
-    C[1,1] = F[b,b]
     
-    w,v=np.linalg.eigh(C)
+    B = np.zeros((2,2))
+    B[0,0] = F[a,a]
+    B[1,0] = F[a,b]
+    B[0,1] = F[b,a]
+    B[1,1] = F[b,b]
+    
+    w,v=np.linalg.eigh(B)
     angle=180*np.arctan2(v[1,0],v[0,0])/np.pi
     
     a_1s=np.sqrt(2.3*w[0]) #68% confidence
@@ -102,6 +103,9 @@ def plotting(a,b): #where a and b correspond to the parameter you want in quotes
       
     centre = np.array([eval(funcs[int(a[0])].split('dlogfd')[1]),eval(funcs[int(b[0])].split('dlogfd')[1])])
     
+    print a_1s
+    print b_1s
+    
     e_1s=Ellipse(xy=centre,width=2*a_1s,height=2*b_1s,angle=angle,
                         facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='aqua', label = '$68$% $confidence$')
     #                     
@@ -110,26 +114,49 @@ def plotting(a,b): #where a and b correspond to the parameter you want in quotes
                         facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='blue',  label = '$95$% $confidence$')
     #                     facecolor=fc[i],linewidth=lw[i],linestyle=ls[i],edgecolor=lc[i])
     
-    print a_1s
-    print b_1s
+   
     
     ax = plt.gca()
     
     #angle matter fix dis!!
-    plt.axis([centre[0]- 2*a_2s, centre[0] + 2*a_2s, centre[1] - 2*b_2s ,centre[1]+ 2*b_2s]) 
-    plt.plot()
-     
+    
+
+
+    if -0.02 < np.cos(np.deg2rad(angle))  < 0.02:
+        plt.axis([centre[0]- 2*b_2s, centre[0] + 2*b_2s, centre[1] - 2*a_2s, centre[1]+ 2*a_2s]) 
+        plt.plot()
+    elif -0.02 < np.sin(np.deg2rad(angle))  < 0.02 :
+        plt.axis([centre[0]- 2*a_2s, centre[0] + 2*a_2s, centre[1] - 2*b_2s, centre[1]+ 2*b_2s]) 
+        plt.plot()
+        
+    else:
+        plt.axis([centre[0]- 2*np.cos(np.deg2rad(angle))*a_2s, centre[0] + 2*np.cos(np.deg2rad(angle))*a_2s, centre[1] - 2*np.cos(np.deg2rad(angle))*b_2s, centre[1]+ 2*np.cos(np.deg2rad(angle))*b_2s]) 
+        plt.plot()
+        
+    
+    '''
+    
+    if a_2s > b_2s:
+        
+        plt.axis([centre[0]- 2*np.cos(np.deg2rad(angle))*a_2s, centre[0] + 2*np.cos(np.deg2rad(angle))*a_2s, centre[1] - 2*np.sin(np.deg2rad(angle))*a_2s ,centre[1]+ 2*np.sin(np.deg2rad(angle))*a_2s]) 
+        plt.plot()
+        
+    else:
+        plt.axis([centre[0]- 2*np.sin(np.deg2rad(angle))*b_2s, centre[0] + 2*np.sin(np.deg2rad(angle))*b_2s, centre[1] - 2*np.cos(np.deg2rad(angle))*b_2s, centre[1]+ 2*np.cos(np.deg2rad(angle))*b_2s]) 
+        plt.plot()
+    ''' 
      
     #emcee order is b, sign1a -> this part will be uncommented as you need it
     #you can use it to compare sign1a and b
-    emcee_file = os.path.join(os.path.expanduser('~/cosmosis/'), 'gaussian.txt')
+   
+    #emcee_file = os.path.join(os.path.expanduser('~/cosmosis/'), 'gaussian.txt')
     
-    emcee = np.loadtxt(emcee_file, unpack = True)
+    #emcee = np.loadtxt(emcee_file, unpack = True)
     
    
     plt.xlabel(funcs[int(a[0])].split('dlogfd')[1])
     plt.ylabel(funcs[int(b[0])].split('dlogfd')[1])
-    ax.scatter(emcee[1][8000:-1], emcee[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
+    #ax.scatter(emcee[1][8000:-1], emcee[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
     ax.add_patch(e_1s)
     ax.add_patch(e_2s)
     
