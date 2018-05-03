@@ -17,12 +17,13 @@ to test the functionality of the mixed gaussian
 fisher matrix code
 '''
 
+#fill in sampled over values with their best fit values
 
 data = data[np.lexsort(np.fliplr(data).T)]  #sorts data from smallest to largest 
 sig1 = 0.1
-sig2 = 0.2
+sig2 = 0.0923803
 u1 = 0.5
-u2 = 0.6
+u2 = 0.996738
 p1 = data[:,1]    
 x = data[:,0]
 
@@ -81,7 +82,7 @@ for i in range(len(funcs)):
 
 F = np.linalg.inv(I)
 
- 
+
 def plotting(a,b): #where a and b correspond to the parameter you want in quotes ie. "u2"
     a = [i for i,s in enumerate(funcs) if a in s]
     b = [i for i,s in enumerate(funcs) if b in s]
@@ -114,13 +115,21 @@ def plotting(a,b): #where a and b correspond to the parameter you want in quotes
     
     ax = plt.gca()
     
-    
-    plt.axis([centre[0]-2*a_2s,centre[0] + 2*a_2s,centre[1] - 2*b_2s ,centre[1]+2*b_2s]) 
+    #angle matter fix dis!!
+    plt.axis([centre[0]- 2*a_2s, centre[0] + 2*a_2s, centre[1] - 2*b_2s ,centre[1]+ 2*b_2s]) 
     plt.plot()
+     
+     
+    #emcee order is b, sign1a -> this part will be uncommented as you need it
+    #you can use it to compare sign1a and b
+    emcee_file = os.path.join(os.path.expanduser('~/cosmosis/'), 'gaussian.txt')
     
+    emcee = np.loadtxt(emcee_file, unpack = True)
+    
+   
     plt.xlabel(funcs[int(a[0])].split('dlogfd')[1])
     plt.ylabel(funcs[int(b[0])].split('dlogfd')[1])
-    #ax.scatter(gauss[1][8000:-1], gauss[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
+    ax.scatter(emcee[1][8000:-1], emcee[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
     ax.add_patch(e_1s)
     ax.add_patch(e_2s)
     
@@ -129,4 +138,4 @@ def plotting(a,b): #where a and b correspond to the parameter you want in quotes
     
     plt.show()
         
-    
+
