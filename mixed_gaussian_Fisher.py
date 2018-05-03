@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 from decimal import Decimal
 from matplotlib.patches import Ellipse
 import random as random
-from scipy.misc import derivative
-
 import os
 
 data_file = os.path.join(os.path.expanduser('~/cosmosis/ini_files'), 'gaussian_data.txt')
@@ -84,7 +82,9 @@ for i in range(len(funcs)):
 F = np.linalg.inv(I)
 
  
-def plotting(a,b): #where a and b correspond to the order of parameters you want in funcs
+def plotting(a,b): #where a and b correspond to the parameter you want in quotes ie. "u2"
+    a = [i for i,s in enumerate(funcs) if a in s]
+    b = [i for i,s in enumerate(funcs) if b in s]
     C = np.zeros((2,2))
     C[0,0] = F[a,a]
     C[1,0] = F[a,b]
@@ -99,7 +99,7 @@ def plotting(a,b): #where a and b correspond to the order of parameters you want
     a_2s=np.sqrt(6.17*w[0]) #95% confidence 
     b_2s=np.sqrt(6.17*w[1])
       
-    centre = np.array([eval(funcs[a].split('dlogfd')[1]),eval(funcs[b].split('dlogfd')[1])])
+    centre = np.array([eval(funcs[int(a[0])].split('dlogfd')[1]),eval(funcs[int(b[0])].split('dlogfd')[1])])
     
     e_1s=Ellipse(xy=centre,width=2*a_1s,height=2*b_1s,angle=angle,
                         facecolor='None',linewidth=1.0,linestyle='solid',edgecolor='aqua', label = '$68$% $confidence$')
@@ -118,8 +118,8 @@ def plotting(a,b): #where a and b correspond to the order of parameters you want
     plt.axis([centre[0]-2*a_2s,centre[0] + 2*a_2s,centre[1] - 2*b_2s ,centre[1]+2*b_2s]) 
     plt.plot()
     
-    plt.xlabel(funcs[a].split('dlogfd')[1])
-    plt.ylabel(funcs[b].split('dlogfd')[1])
+    plt.xlabel(funcs[int(a[0])].split('dlogfd')[1])
+    plt.ylabel(funcs[int(b[0])].split('dlogfd')[1])
     #ax.scatter(gauss[1][8000:-1], gauss[0][8000:-1],  c = 'purple', s = 0.2, alpha = 0.1) #this plots the MCMC point from CosmoSIS if you have them to compare to
     ax.add_patch(e_1s)
     ax.add_patch(e_2s)
